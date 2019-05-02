@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/jmoiron/sqlx"
+	// Importin Postgresql driver
 	_ "github.com/lib/pq"
 )
 
