@@ -19,7 +19,7 @@ type Task struct {
 
 // GetAllTasks - Returns all tasks from the database
 func (db *DB) GetAllTasks() ([]Task, error) {
-	rows, err := db.Queryx("SELECT * FROM tbl_tasks")
+	rows, err := db.Queryx("SELECT * FROM tbl_task")
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func (db *DB) GetAllTasks() ([]Task, error) {
 
 // GetTasksByStatus - Returns a filtered task list by status
 func (db *DB) GetTasksByStatus(status int) ([]Task, error) {
-	rows, err := db.Queryx("SELECT * FROM tbl_tasks WHERE status == $1", status)
+	rows, err := db.Queryx("SELECT * FROM tbl_task WHERE status == $1", status)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (db *DB) GetTasksByStatus(status int) ([]Task, error) {
 // GetTasksByStatusLimit - Returns a filtered task list by status
 func (db *DB) GetTasksByStatusLimit(status int, limit int) ([]Task, error) {
 	if limit > 0 {
-		rows, err := db.Queryx("SELECT * FROM tbl_tasks WHERE status == $1 LIMIT $2", status, limit)
+		rows, err := db.Queryx("SELECT * FROM tbl_task WHERE status == $1 LIMIT $2", status, limit)
 		if err != nil {
 			return nil, err
 		}
@@ -94,7 +94,7 @@ func (db *DB) GetTasksByStatusLimit(status int, limit int) ([]Task, error) {
 
 // AddTask - Returns a filtered task list by status
 func (db *DB) AddTask(status int) ([]Task, error) {
-	rows, err := db.Queryx("INSERT * FROM tbl_tasks WHERE tbl_tasks.status == $1", status)
+	rows, err := db.Queryx("INSERT * FROM tbl_task WHERE tbl_task.status == $1", status)
 	if err != nil {
 		return nil, err
 	}
@@ -116,27 +116,12 @@ func (db *DB) AddTask(status int) ([]Task, error) {
 }
 
 // UpdateTask - Returns a filtered task list by status
-func (db *DB) UpdateTask(task Task) ([]Task, error) {
-	rows, err := db.Queryx("SELECT * FROM tbl_tasks WHERE tbl_tasks.status == $1", task)
+func (db *DB) UpdateTask(task Task) (error) {
+	_, err := db.NamedExec("UPDATE tbl_task SET fk_group=:group, link=:link, hash=:hash, name=:name, fk_status=:fk_status, message=:message, size=:size", task)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	defer rows.Close()
-
-	tasks := make([]Task, 0)
-	for rows.Next() {
-		var task Task
-		
-		err = rows.StructScan(&task)
-		if err != nil {
-			return nil, err
-		}
-		tasks = append(tasks, task)
-	}
-	if err = rows.Err(); err != nil {
-		return nil, err
-	}
-	return tasks, nil
+	return nil
 }
 
 // DeleteTask - Deletes a task
@@ -150,7 +135,7 @@ func (db *DB) DeleteTask(id int) error {
 
 // deleteTask - Deletes a task (effective delete function)
 func deleteTask(db *DB, id int) error {
-	_, err := db.Exec("DELETE FROM tbl_tasks WHERE tbl_tasks.id == $1", id)
+	_, err := db.Exec("DELETE FROM tbl_task WHERE tbl_task.id == $1", id)
 	if err != nil {
 		return err
 	}
